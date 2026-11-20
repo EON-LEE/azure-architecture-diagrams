@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "packs": {
+    "azure": {
+      "title": "Azure Public Service Icons V25",
+      "source_page": "https://learn.microsoft.com/azure/architecture/icons/",
+      "url": "https://arch-center.azureedge.net/icons/Azure_Public_Service_Icons_V25.zip",
+      "terms": "https://learn.microsoft.com/azure/architecture/icons/#icon-terms",
+      "file": "Azure_Public_Service_Icons_V25.zip",
+      "format": "zip",
+      "root": "Azure_Public_Service_Icons/Icons/",
+      "strip": ["^\\d+\\s*-icon-service-"]
+    },
+    "fabric": {
+      "title": "Microsoft Fabric icons (@fabric-msft/svg-icons 12.0.0)",
+      "source_page": "https://www.npmjs.com/package/@fabric-msft/svg-icons",
+      "url": "https://registry.npmjs.org/@fabric-msft/svg-icons/-/svg-icons-12.0.0.tgz",
+      "npm": "@fabric-msft/svg-icons@12.0.0",
+      "terms": "MIT license (npm package metadata); Fabric icon guidance: https://learn.microsoft.com/fabric/fundamentals/icons",
+      "file": "fabric-msft-svg-icons-12.0.0.tgz",
+      "format": "tgz",
+      "root": "package/svg/",
+      "suffixes": ["_48_item", "_48_color"]
+    },
+    "powerplatform": {
+      "title": "Power Platform icons (scalable)",
+      "source_page": "https://learn.microsoft.com/power-platform/guidance/icons",
+      "url": "https://download.microsoft.com/download/498606aa-6d27-4f13-aa5c-1401078c153b/Power-Platform-icons-scalable.zip",
+      "terms": "https://learn.microsoft.com/power-platform/guidance/icons (CELA_Licenses_Public_Use_Icons.pdf in the archive)",
+      "file": "Power-Platform-icons-scalable.zip",
+      "format": "zip",
+      "root": "",
+      "strip": ["_scalable$"]
+    },
+    "entra": {
+      "title": "Microsoft Entra architecture icons (Oct 2023)",
+      "source_page": "https://learn.microsoft.com/entra/architecture/architecture-icons",
+      "url": "https://download.microsoft.com/download/3/1/a/31a56038-856a-4489-88e4-ee5a1c4352be/Microsoft%20Entra%20architecture%20icons%20-%20Oct%202023.zip",
+      "terms": "https://learn.microsoft.com/entra/architecture/architecture-icons",
+      "file": "Microsoft-Entra-architecture-icons-Oct-2023.zip",
+      "format": "zip",
+      "root": "Microsoft Entra architecture icons - Oct 2023/",
+      "default_dir": "Microsoft Entra color icons SVG",
+      "strip": [" (color|BW) icon"]
+    },
+    "m365": {
+      "title": "Microsoft 365 content icons (2024)",
+      "source_page": "https://learn.microsoft.com/microsoft-365/solutions/architecture-icons-templates",
+      "url": "https://download.microsoft.com/download/2/F/3/2F346655-1F7E-4F5E-BE78-82DA3D507F3A/2024-microsoft-365-content-icons.zip",
+      "terms": "https://learn.microsoft.com/microsoft-365/solutions/architecture-icons-templates",
+      "file": "2024-microsoft-365-content-icons.zip",
+      "format": "zip",
+      "root": "",
+      "default_dir": "Microsoft Blue/48x48 Dark Blue Icon"
+    },
+    "dynamics365": {
+      "title": "Dynamics 365 icons (scalable)",
+      "source_page": "https://learn.microsoft.com/dynamics365/get-started/icons",
+      "url": "https://download.microsoft.com/download/498606aa-6d27-4f13-aa5c-1401078c153b/Dynamics-365-icons-scalable.zip",
+      "terms": "https://learn.microsoft.com/dynamics365/get-started/icons (CELA_Licenses_Public_Use_Icons.pdf in the archive)",
+      "file": "Dynamics-365-icons-scalable.zip",
+      "format": "zip",
+      "root": "",
+      "strip": ["_scalable$"]
+    }
+  }
+}

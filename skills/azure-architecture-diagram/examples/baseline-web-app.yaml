@@ -1,0 +1,146 @@
+# Example spec: zone-redundant App Service baseline web app, reference style, 1920 x 1080.
+# Source: https://learn.microsoft.com/azure/architecture/web-apps/app-service/architectures/baseline-zone-redundant
+# Render: python scripts/render.py examples/baseline-web-app.yaml --out out/baseline-web-app --strict
+name: baseline-web-app
+style: reference
+canvas: {width: 1920, height: 1080}
+theme:
+  edge_kinds:
+    request: {label: 인바운드 요청}
+    action: {label: 아웃바운드 호출 (VNet 통합)}
+    control: {label: DNS 영역 연결 · 원격 분석}
+
+title: 영역 중복 App Service 기준 웹 애플리케이션 on Azure
+description: >-
+  이 아키텍처는 **Application Gateway**와 WAF로 인터넷 요청을 받아 프라이빗 엔드포인트를 거쳐 영역 중복
+  **App Service**로 전달하고, App Service가 VNet 통합과 프라이빗 엔드포인트로 **SQL Database** · **Key Vault** ·
+  **Storage**에 비공개로 연결하는 방법을 보여 줍니다.
+
+groups:
+  - {id: sub, label: Azure 구독, sublabel: 워크로드 리소스 그룹, icon: "azure:general/Subscriptions", kind: azure,
+     box: [184, 163, 1420, 871]}
+  - {id: vnet, parent: sub, label: 가상 네트워크, icon: "azure:networking/Virtual-Networks", kind: vnet,
+     box: [212, 215, 1392, 608]}
+  - {id: agw-subnet, parent: vnet, label: App Gateway 서브넷, icon: "azure:networking/Subnet", kind: subnet,
+     box: [240, 413, 486, 584]}
+  - {id: int-subnet, parent: vnet, label: App Service 통합 서브넷, icon: "azure:networking/Subnet", kind: subnet,
+     box: [502, 267, 1364, 401]}
+  - {id: pe-subnet, parent: vnet, label: 프라이빗 엔드포인트 서브넷, icon: "azure:networking/Subnet", kind: subnet,
+     box: [502, 413, 1364, 584]}
+  - {id: appsvc, parent: sub, label: App Service, sublabel: 영역 중복 · 관리 ID, icon: "azure:app services/App-Services",
+     kind: plain, box: [440, 646, 820, 847]}
+
+nodes:
+  - {id: users, at: [100, 496], icon: "azure:identity/Users", label_w: 120, title: 사용자, detail: 인터넷}
+  # Virtual network
+  - {id: ddos, parent: vnet, at: [276, 334], icon: "azure:networking/DDoS-Protection-Plans", label_pos: right,
+     label_w: 160, title: DDoS Protection, detail: 공용 IP 보호}
+  - {id: appgw, parent: agw-subnet, at: [363, 496], label_w: 200, title: Application Gateway,
+     icons: ["azure:networking/Application-Gateways", "azure:networking/Web-Application-Firewall-Policies(WAF)"],
+     detail: 웹 애플리케이션 방화벽(WAF)}
+  - {id: nic, parent: int-subnet, at: [1120, 334], icon: "azure:networking/Network-Interfaces", label_pos: right,
+     label_w: 150, title: 가상 인터페이스, detail: VNet 통합}
+  - {id: pe-app, parent: pe-subnet, at: [630, 496], icon: "azure:other/Private-Endpoints", label_w: 150,
+     title: App Service PE}
+  - {id: pe-sql, parent: pe-subnet, at: [945, 496], icon: "azure:other/Private-Endpoints", label_w: 150,
+     title: SQL Database PE}
+  - {id: pe-kv, parent: pe-subnet, at: [1120, 496], icon: "azure:other/Private-Endpoints", label_w: 150,
+     title: Key Vault PE}
+  - {id: pe-st, parent: pe-subnet, at: [1295, 496], icon: "azure:other/Private-Endpoints", label_w: 150,
+     title: Storage PE}
+  # Workload resources outside the virtual network
+  - {id: dns, parent: sub, at: [330, 742], icon: "azure:networking/DNS-Zones", label_w: 180,
+     title: 프라이빗 DNS 영역, detail: privatelink.* A 레코드}
+  - {id: inst1, parent: appsvc, at: [510, 742], icon: "azure:app services/App-Services", label_w: 110,
+     title: 인스턴스, detail: 가용성 영역 1}
+  - {id: inst2, parent: appsvc, at: [630, 742], icon: "azure:app services/App-Services", label_w: 110,
+     title: 인스턴스, detail: 가용성 영역 2}
+  - {id: inst3, parent: appsvc, at: [750, 742], icon: "azure:app services/App-Services", label_w: 110,
+     title: 인스턴스, detail: 가용성 영역 3}
+  - {id: sql, parent: sub, at: [945, 742], icon: "azure:databases/SQL-Database", label_w: 170,
+     title: Azure SQL Database, detail: 앱 데이터}
+  - {id: kv, parent: sub, at: [1120, 742], icon: "azure:security/Key-Vaults", label_w: 160,
+     title: Azure Key Vault, detail: TLS 인증서 · 앱 비밀}
+  - {id: st, parent: sub, at: [1295, 742], icon: "azure:storage/Storage-Accounts", label_w: 150,
+     title: Azure Storage, detail: 배포 패키지}
+
+edges:
+  # 1-4 inbound
+  - {id: e1, from: users, to: appgw, kind: request}
+  - {id: e2, from: appgw, to: pe-app, kind: request}
+  - {id: e3, from: dns, to: vnet, kind: control, x: 330, label: VNet 연결}
+  - {id: e4, from: pe-app, to: appsvc, kind: request, x: 630}
+  # 5-7 outbound: VNet integration, then one trunk that fans out to the private endpoints
+  - {id: e5, from: appsvc, to: nic, kind: action, via: [[790, 334]]}
+  - {id: e6, from: nic, to: pe-kv, kind: action, x: 1120}
+  - {id: e6a, from: nic, to: pe-sql, kind: action, via: [[1120, 384], [945, 384]]}
+  - {id: e6b, from: nic, to: pe-st, kind: action, via: [[1120, 384], [1295, 384]]}
+  - {id: e7a, from: pe-sql, to: sql, kind: action}
+  - {id: e7b, from: pe-kv, to: kv, kind: action}
+  - {id: e7c, from: pe-st, to: st, kind: action}
+  # 8 telemetry
+  - {id: e8, from: appsvc, to: appinsights, kind: control, x: 750}
+
+badges:
+  - {n: 1, edge: e1}
+  - {n: 2, edge: e2, pos: 0.75}
+  - {n: 3, edge: e3, side: left}
+  - {n: 4, edge: e4, pos: 0.78}
+  - {n: 5, edge: e5, pos: 0.2}
+  - {n: 6, edge: e6, pos: 0.75, side: right}
+  - {n: 7, edge: e7b, pos: 0.6, side: right}
+  - {n: 8, edge: e8, pos: 0.43, side: right}
+
+panel:
+  box: [1460, 0, 1920, 1080]
+  steps:
+    - kind: request
+      text: 사용자가 HTTPS로 **Application Gateway**의 공용 IP 주소에 요청을 보냅니다.
+    - kind: request
+      text: >-
+        Application Gateway가 XSS · SQL 삽입 같은 공격을 막는 **WAF** 규칙을 평가합니다. 위반하면 오류를
+        반환하고, 통과하면 백 엔드 풀인 App Service 기본 도메인으로 라우팅합니다.
+    - kind: control
+      text: >-
+        VNet에 연결된 **프라이빗 DNS 영역**의 A 레코드가 App Service 기본 도메인을 프라이빗 엔드포인트 IP
+        주소로 확인합니다.
+    - kind: request
+      text: >-
+        Application Gateway가 프라이빗 엔드포인트를 거쳐 가용성 영역 3곳에 배포된 **App Service** 인스턴스로
+        요청을 전달합니다.
+    - kind: action
+      text: >-
+        App Service가 SQL Database · Key Vault · Storage의 DNS 이름으로 요청을 보내면 **VNet 통합**이 요청을
+        가상 네트워크로 라우팅합니다.
+    - kind: action
+      text: >-
+        프라이빗 DNS 영역이 서비스 도메인을 프라이빗 엔드포인트 IP 주소로 확인하고, 가상 네트워크가 요청을 해당
+        **프라이빗 엔드포인트**로 보냅니다.
+    - kind: action
+      text: >-
+        SQL Database · Key Vault · Storage는 공용 액세스를 차단하고 프라이빗 엔드포인트로만 요청을 받습니다.
+        App Service는 **관리 ID**로 인증합니다.
+    - kind: control
+      text: >-
+        **Application Insights**와 **Azure Monitor**가 로그와 메트릭을 수집하고, 상태 모델(선택 사항)이
+        워크로드 전체의 상태를 요약합니다.
+  legend_notes:
+    - PE = 프라이빗 엔드포인트(Private Endpoint)
+
+bands:
+  - id: shared
+    box: [40, 915, 1420, 999]
+    label: 공통 서비스
+    note: ID · 모니터링
+    items:
+      - {icon: "entra:Microsoft Entra ID", title: Microsoft Entra ID, detail: ID · 액세스 제어}
+      - {icon: "azure:monitor/Monitor", title: Azure Monitor, detail: 로그 · 메트릭 · 경고}
+      - {id: appinsights, icon: "azure:monitor/Application-Insights", title: Application Insights,
+         detail: 앱 원격 분석}
+      - {icon: "azure:other/Monitor-Health-Models", title: 상태 모델, detail: 워크로드 상태 (선택 사항)}
+
+footer:
+  center: Azure 서비스 아키텍처 설계 예시
+  left:
+    - "근거: Microsoft Learn 영역 중복 App Service 기준 아키텍처"
+    - "아이콘: Microsoft 공식 Azure 아키텍처 아이콘"

@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+out/
+
+# Rendered diagrams are not committed.
+*.drawio
+*.png
+*.svg
+*-validation.json
+icon-provenance.json
